@@ -148,7 +148,7 @@
   text-transform:uppercase;
 }
 
-form{ display:flex; flex-direction:column; gap:20px; }
+.form{ display:flex; flex-direction:column; gap:20px; }
 
 .field{ display:flex; flex-direction:column; gap:20px; }
 
@@ -268,7 +268,7 @@ form{ display:flex; flex-direction:column; gap:20px; }
   .root{ align-items:flex-start; padding-top:70px; padding-bottom:24px; }
   .head{ margin-bottom:18px; }
   .head h1{ font-size:28px; }
-  form{ gap:14px; }
+  .form{ gap:14px; }
   .card{ padding:26px 30px 22px; }
   .tl, .tr{ display:none; }
   .bl, .br{ opacity:.4; width:90px; }
