@@ -19,7 +19,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // 1) username -> email (login_lookup view orqali, faqat username+email ochiq)
       const { data: lookup, error: lookupErr } = await supabase
         .from('login_lookup')
         .select('email')
@@ -32,7 +31,6 @@ export default function LoginPage() {
         return;
       }
 
-      // 2) Supabase Auth orqali kirish
       const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
         email: lookup.email,
         password,
@@ -44,7 +42,6 @@ export default function LoginPage() {
         return;
       }
 
-      // 3) Profil (rol) ni olib, tegishli panelga yo'naltirish
       const { data: profile, error: profileErr } = await supabase
         .from('profiles')
         .select('role')
@@ -141,7 +138,7 @@ export default function LoginPage() {
             <p>b.Kassa.uz</p>
           </div>
 
-          <form onSubmit={handleSubmit} autoComplete="off">
+          <form className={styles.form} onSubmit={handleSubmit} autoComplete="off">
             <div className={styles.field}>
               <div className={styles.inputWrap}>
                 <input
