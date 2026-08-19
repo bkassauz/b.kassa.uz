@@ -353,6 +353,9 @@
   vertical-align:middle;
 }
 .table tr:last-child td{ border-bottom:none; }
+.tableRowClickable{ cursor:pointer; transition:background .15s ease; }
+.tableRowClickable:hover{ background:rgba(255,31,61,.08); }
+.tableRowClickable:hover td:first-child{ color:#ff7c8d; }
 .tableEmpty{
   padding:30px 12px;
   text-align:center;

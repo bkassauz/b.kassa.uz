@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import { formatUzPhone } from '../../../lib/phoneMask';
 import Modal from '../../../components/Modal';
@@ -16,6 +17,7 @@ const emptyForm = {
 };
 
 export default function GameClubsPage() {
+  const router = useRouter();
   const [clubs, setClubs] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -123,7 +125,11 @@ export default function GameClubsPage() {
                 <tr><td colSpan={5} className={styles.tableEmpty}>Hozircha ro'yxatdan o'tgan bar yo'q.</td></tr>
               )}
               {!listLoading && clubs.map((club) => (
-                <tr key={club.id}>
+                <tr
+                  key={club.id}
+                  className={styles.tableRowClickable}
+                  onClick={() => router.push(`/developer/game-clubs/${club.id}`)}
+                >
                   <td>{club.name}</td>
                   <td>{club.phone || '—'}</td>
                   <td>{club.address || '—'}</td>
