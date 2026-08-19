@@ -102,6 +102,102 @@ create policy "admins: faqat developer boshqaradi"
 
 
 -- ============================================================
+-- SELLER ADMIN (Game Club) uchun jadvallar
+-- ============================================================
+
+-- Foydalanuvchi (seller_admin) o'ziga tegishli game_club'ni boshqarayotganini tekshiradi
+create or replace function public.owns_game_club(gc_id uuid)
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists (
+    select 1 from public.game_clubs
+    where id = gc_id and owner_id = auth.uid()
+  );
+$$;
+
+-- 5) CATEGORIES — har bir game club o'z kategoriyalariga ega (ichimliklar, snaklar va h.k.)
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  game_club_id uuid references public.game_clubs(id) on delete cascade,
+  name text not null,
+  created_at timestamptz default now()
+);
+
+alter table public.categories enable row level security;
+
+create policy "categories: developer yoki egasi boshqaradi"
+  on public.categories for all
+  using (public.is_developer() or public.owns_game_club(game_club_id))
+  with check (public.is_developer() or public.owns_game_club(game_club_id));
+
+
+-- 6) PRODUCTS — mahsulotlar
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  game_club_id uuid references public.game_clubs(id) on delete cascade,
+  category_id uuid references public.categories(id) on delete cascade,
+  name text not null,
+  quantity numeric not null default 0,
+  cost_price numeric not null default 0,
+  sale_price numeric not null default 0,
+  unit text not null default 'dona',
+  image_url text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.products enable row level security;
+
+create policy "products: developer yoki egasi boshqaradi"
+  on public.products for all
+  using (public.is_developer() or public.owns_game_club(game_club_id))
+  with check (public.is_developer() or public.owns_game_club(game_club_id));
+
+
+-- 7) INVENTORY_HISTORY — "Kirim tarixi" bo'limi uchun jurnal
+create table if not exists public.inventory_history (
+  id uuid primary key default gen_random_uuid(),
+  game_club_id uuid references public.game_clubs(id) on delete cascade,
+  action text not null, -- 'category_added' | 'product_added' | 'product_imported' | 'product_updated'
+  category_name text,
+  product_name text,
+  quantity numeric,
+  unit text,
+  created_at timestamptz default now()
+);
+
+alter table public.inventory_history enable row level security;
+
+create policy "inventory_history: developer yoki egasi ko'radi"
+  on public.inventory_history for all
+  using (public.is_developer() or public.owns_game_club(game_club_id))
+  with check (public.is_developer() or public.owns_game_club(game_club_id));
+
+
+-- ============================================================
+-- STORAGE — mahsulot rasmlari uchun
+-- ============================================================
+-- Supabase Dashboard > Storage > "New bucket" orqali "product-images"
+-- nomli PUBLIC bucket yarating, so'ng shu SQL'ni ishga tushiring:
+--
+-- create policy "product-images: hamma o'qiy oladi"
+--   on storage.objects for select
+--   using (bucket_id = 'product-images');
+--
+-- create policy "product-images: tizimga kirganlar yuklay oladi"
+--   on storage.objects for insert
+--   with check (bucket_id = 'product-images' and auth.role() = 'authenticated');
+--
+-- create policy "product-images: tizimga kirganlar o'chira oladi"
+--   on storage.objects for delete
+--   using (bucket_id = 'product-images' and auth.role() = 'authenticated');
+-- ============================================================
+
+
+-- ============================================================
 -- DEVELOPER FOYDALANUVCHISINI QO'LDA YARATISH
 -- ============================================================
 -- 1. Supabase Dashboard > Authentication > Users > "Add user"

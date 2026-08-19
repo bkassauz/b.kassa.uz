@@ -45,6 +45,12 @@ Parolni istalgan vaqt Authentication → Users bo'limidan o'zgartirishingiz mumk
    - `anon public` key
    - `service_role` key (⚠️ maxfiy, faqat serverga beriladi)
 
+7. **Storage** bo'limiga o'ting → **New bucket** → nomi: `product-images` →
+   **Public bucket** belgisini yoqing → Create. So'ng SQL Editor'da
+   `supabase/schema.sql` faylining oxiridagi (izohdan chiqarilgan) uchta
+   `storage.objects` policy'sini ishga tushiring — bu mahsulot rasmlarini
+   yuklash va ko'rish uchun kerak.
+
 ---
 
 ## 2-qadam: Loyihani local kompyuterda ishga tushirish
@@ -108,23 +114,32 @@ app/
   login/              → avtorizatsiya oynasi
   developer/
     dashboard/         → umumiy vidjetlar
-    game-clubs/        → barlarni ro'yxatga olish, "BAR qo'shish"
+    game-clubs/         → barlarni ro'yxatga olish, tahrirlash (klik orqali)
     analytics/         → club tanlab, diagrammalar (hozircha namunaviy data)
-    admin-settings/    → tizim adminlari ro'yxati
+    settings/          → developer profili: ism, login, parol
+  club/                → Seller Admin (game club) paneli
+    dashboard/          → ombor va sotuv bo'yicha vidjetlar
+    pos/                 → Sotuv POS (hozircha placeholder)
+    products/            → kategoriyalar, mahsulotlar, Excel import
+    history/             → Kirim tarixi jurnali
   api/
-    game-clubs/        → yangi bar uchun login/parol yaratuvchi xavfsiz server route
-components/             → Sidebar, Modal, DeveloperShell
-lib/                    → Supabase client'lar, auth hook, telefon mask
+    game-clubs/         → yangi bar uchun login/parol yaratuvchi xavfsiz server route
+    game-clubs/[id]/     → mavjud barni tahrirlash (login/parol/adminlar)
+components/             → Sidebar, Modal, DeveloperShell, ClubShell, ProductFormModal, ExcelImportModal
+lib/                    → Supabase client'lar, auth context'lar, telefon mask
 supabase/schema.sql     → to'liq SQL sxema
 ```
 
 ## Rollar
-- **developer** — hozircha tayyorlangan yagona panel (siz boshqarasiz).
-- **seller_admin** — game club bar egasi uchun profil turi allaqachon Supabase'da
-  yaratiladi (login/parol), lekin uning shaxsiy paneli hali qurilmagan — keyingi
-  bosqichda qo'shamiz.
+- **developer** — sizning boshqaruv panelingiz (Game Clubs, Analitika, sozlamalar).
+- **seller_admin** — game club bar egasi uchun profil. Developer "BAR qo'shish" orqali
+  yaratgan login/parol bilan shu foydalanuvchi avtorizatsiya oynasidan kirib, o'z
+  panelida (Dashboard, Mahsulotlar, Kirim tarixi, POS) ombor va mahsulotlarni boshqaradi.
 
-## Keyingi bosqichlar (hali qurilmagan)
-- Dashboard'dagi har bir bar uchun batafsil vidjetlar
-- Analitika bo'limini real `sales` jadvaliga ulash
-- Seller Admin (game club) tomonidagi shaxsiy panel
+## Mahsulotlarni Excel'dan import qilish
+"Mahsulotlar" bo'limi pastki o'ng burchagidagi doira tugma orqali `.xlsx` fayl
+yuklanadi. Ustunlar aynan shunday bo'lishi kerak: **Mahsulot nomi, kategoriyasi,
+soni, kelish narxi, sotuv narxi, o'lchov birligi**. Yuklangach, tasdiqlashdan oldin
+jadvalni to'g'ridan-to'g'ri tahrirlash mumkin. Kategoriya mavjud bo'lmasa, avtomatik
+yaratiladi. Import qilingan mahsulotlar rasmsiz qo'shiladi — rasmni keyin mahsulot
+ustiga bosib, tahrirlash oynasidan qo'shasiz.
