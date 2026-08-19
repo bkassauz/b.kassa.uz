@@ -37,6 +37,11 @@ create policy "profiles: developer barchasini ko'radi"
   on public.profiles for select
   using (public.is_developer());
 
+create policy "profiles: o'z profilini yangilash"
+  on public.profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
 -- Login sahifasi uchun: username -> email qidiruvi (parol bu yerda YO'Q, xavfsiz)
 create or replace view public.login_lookup as
   select username, email from public.profiles;
