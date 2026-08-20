@@ -546,6 +546,16 @@
   font-size:11.5px;
   color:var(--muted);
 }
+.catCardActions{
+  position:absolute;
+  top:10px; right:10px;
+  display:flex;
+  gap:6px;
+  opacity:0;
+  transition:opacity .15s ease;
+}
+.catCard:hover .catCardActions{ opacity:1; }
+.catCardActions .btnIcon{ width:24px; height:24px; }
 
 /* ---------- Floating import button ---------- */
 .fab{
@@ -679,4 +689,113 @@
 .historyBadge.added{ color:#7fffa0; background:rgba(127,255,160,.1); }
 .historyBadge.updated{ color:#ffd47f; background:rgba(255,212,127,.1); }
 .historyBadge.category{ color:#ff9c7f; background:rgba(255,156,127,.1); }
+
+/* ---------- POS ---------- */
+.posWrap{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  gap:20px;
+  align-items:start;
+}
+@media (max-width:900px){
+  .posWrap{ grid-template-columns:1fr; }
+}
+
+.posSearchWrap{ position:relative; margin-bottom:16px; }
+.posSearchResults{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0; right:0;
+  background:#15151c;
+  border:1px solid var(--line);
+  max-height:280px;
+  overflow-y:auto;
+  z-index:15;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.posSearchItem{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 12px;
+  cursor:pointer;
+  font-size:13px;
+}
+.posSearchItem:hover{ background:rgba(255,31,61,.1); }
+.posSearchItem .name{ flex:1; }
+.posSearchItem .stock{ font-size:11px; color:var(--muted); }
+.posSearchItem .price{ font-size:12.5px; color:#ff9c7f; font-weight:600; }
+
+.cartEmpty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:70px 20px;
+  color:var(--muted);
+  gap:10px;
+}
+.cartEmpty svg{ width:44px; height:44px; opacity:.45; }
+
+.qtyInput{
+  width:60px;
+  background:rgba(0,0,0,.3);
+  border:1px solid rgba(255,31,61,.3);
+  color:var(--white);
+  padding:5px 6px;
+  text-align:center;
+  font-size:13px;
+}
+
+.paymentRow{
+  display:flex;
+  gap:8px;
+  margin-bottom:18px;
+}
+.paymentBtn{
+  flex:1;
+  padding:11px 8px;
+  text-align:center;
+  border:1px solid var(--line);
+  background:rgba(255,31,61,.05);
+  color:var(--muted);
+  cursor:pointer;
+  font-weight:700;
+  font-size:12.5px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-family:'Rajdhani', sans-serif;
+}
+.paymentBtnActive{
+  background:rgba(255,31,61,.2);
+  color:var(--white);
+  border-color:var(--red);
+}
+
+.totalsRow{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+.totalsGrand{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  font-family:'Rajdhani', sans-serif;
+  font-size:24px;
+  font-weight:700;
+  color:var(--white);
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--line);
+}
+
+.posActions{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
+.posActions .btnGhost, .posActions .btnPrimary{ flex:1; text-align:center; justify-content:center; }
 

@@ -18,7 +18,22 @@ export default function ProductFormModal({ gameClubId, categoryId, categoryName,
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(product?.image_url || '');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+
+  async function handleDelete() {
+    const ok = window.confirm(`"${product.name}" mahsulotini o'chirasizmi?`);
+    if (!ok) return;
+    setDeleting(true);
+    const { error: delErr } = await supabase.from('products').delete().eq('id', product.id);
+    if (delErr) {
+      setError(delErr.message);
+      setDeleting(false);
+      return;
+    }
+    onSaved();
+    onClose();
+  }
 
   function handleImagePick(e) {
     const file = e.target.files?.[0];
@@ -160,6 +175,17 @@ export default function ProductFormModal({ gameClubId, categoryId, categoryName,
         {error && <p className={styles.errorText}>{error}</p>}
 
         <div className={styles.formActions}>
+          {isEdit && (
+            <button
+              type="button"
+              className={styles.btnGhost}
+              style={{ color: '#ff6b7f', marginRight: 'auto' }}
+              onClick={handleDelete}
+              disabled={deleting || saving}
+            >
+              {deleting ? "O'chirilmoqda..." : "O'chirish"}
+            </button>
+          )}
           <button type="button" className={styles.btnGhost} onClick={onClose}>
             Bekor qilish
           </button>

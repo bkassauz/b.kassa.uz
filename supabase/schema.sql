@@ -67,6 +67,10 @@ create policy "game_clubs: faqat developer boshqaradi"
   using (public.is_developer())
   with check (public.is_developer());
 
+create policy "game_clubs: egasi o'z ma'lumotini ko'radi"
+  on public.game_clubs for select
+  using (auth.uid() = owner_id);
+
 
 -- 3) CLUB_ADMINS — bitta game club ichidagi qo'shimcha adminlar (Ism + Telefon)
 create table if not exists public.club_admins (
@@ -173,6 +177,45 @@ alter table public.inventory_history enable row level security;
 
 create policy "inventory_history: developer yoki egasi ko'radi"
   on public.inventory_history for all
+  using (public.is_developer() or public.owns_game_club(game_club_id))
+  with check (public.is_developer() or public.owns_game_club(game_club_id));
+
+
+-- 8) SALES / SALE_ITEMS — Sotuv POS uchun
+create table if not exists public.sales (
+  id uuid primary key default gen_random_uuid(),
+  game_club_id uuid references public.game_clubs(id) on delete cascade,
+  customer_name text,
+  customer_phone text,
+  payment_method text not null default 'naqd',
+  total numeric not null default 0,
+  created_at timestamptz default now()
+);
+
+alter table public.sales enable row level security;
+drop policy if exists "sales: developer yoki egasi boshqaradi" on public.sales;
+create policy "sales: developer yoki egasi boshqaradi"
+  on public.sales for all
+  using (public.is_developer() or public.owns_game_club(game_club_id))
+  with check (public.is_developer() or public.owns_game_club(game_club_id));
+
+create table if not exists public.sale_items (
+  id uuid primary key default gen_random_uuid(),
+  sale_id uuid references public.sales(id) on delete cascade,
+  game_club_id uuid references public.game_clubs(id) on delete cascade,
+  product_id uuid references public.products(id) on delete set null,
+  product_name text not null,
+  unit text,
+  quantity numeric not null,
+  price numeric not null,
+  line_total numeric not null,
+  created_at timestamptz default now()
+);
+
+alter table public.sale_items enable row level security;
+drop policy if exists "sale_items: developer yoki egasi boshqaradi" on public.sale_items;
+create policy "sale_items: developer yoki egasi boshqaradi"
+  on public.sale_items for all
   using (public.is_developer() or public.owns_game_club(game_club_id))
   with check (public.is_developer() or public.owns_game_club(game_club_id));
 
