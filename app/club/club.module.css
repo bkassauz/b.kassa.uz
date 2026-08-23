@@ -844,3 +844,49 @@
 .downloadMenu button:last-child{ border-bottom:none; }
 .downloadMenu button:hover{ background:rgba(255,31,61,.12); color:#ff9c7f; }
 
+/* ---------- Analytics ---------- */
+.periodRow{
+  display:flex;
+  gap:8px;
+  margin-bottom:22px;
+  flex-wrap:wrap;
+}
+.periodBtn{
+  padding:9px 16px;
+  border:1px solid var(--line);
+  background:rgba(255,31,61,.05);
+  color:var(--muted);
+  cursor:pointer;
+  font-weight:600;
+  font-size:12.5px;
+  letter-spacing:.04em;
+  font-family:'Rajdhani', sans-serif;
+}
+.periodBtnActive{
+  background:rgba(255,31,61,.2);
+  color:var(--white);
+  border-color:var(--red);
+}
+.barLabel{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  margin-bottom:4px;
+}
+.barTrack{
+  height:8px;
+  background:rgba(255,255,255,.06);
+  overflow:hidden;
+  margin-bottom:14px;
+}
+.barFill{
+  height:100%;
+  background:linear-gradient(90deg, var(--red-deep), var(--red));
+}
+.emptyNote{
+  color:var(--muted);
+  font-size:13px;
+  padding:20px 0;
+  text-align:center;
+}
+
