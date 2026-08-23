@@ -18,8 +18,6 @@ export default function PosPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [cart, setCart] = useState([]);
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('naqd');
   const [finalizing, setFinalizing] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -89,8 +87,6 @@ export default function PosPage() {
 
   function resetSale() {
     setCart([]);
-    setCustomerName('');
-    setCustomerPhone('');
     setPaymentMethod('naqd');
     setMessage({ type: '', text: '' });
   }
@@ -114,8 +110,6 @@ export default function PosPage() {
         .from('sales')
         .insert({
           game_club_id: club.id,
-          customer_name: customerName.trim() || null,
-          customer_phone: customerPhone.trim() || null,
           payment_method: paymentMethod,
           total: grandTotal,
         })
@@ -258,24 +252,8 @@ export default function PosPage() {
           </div>
         </div>
 
-        {/* O'ng: mijoz + to'lov */}
+        {/* O'ng: to'lov */}
         <div className={styles.panel}>
-          <div className={styles.formField} style={{ marginBottom: 16 }}>
-            <label>Mijoz (ixtiyoriy)</label>
-            <input
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Mijoz ismi"
-            />
-          </div>
-          <div className={styles.formField} style={{ marginBottom: 20 }}>
-            <input
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="Telefon raqami"
-            />
-          </div>
-
           <label style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>
             To'lov turi
           </label>

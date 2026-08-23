@@ -9,6 +9,7 @@ const TITLES = {
   '/club/pos': ['Sotuv POS', ''],
   '/club/dashboard': ['Dashboard', "Umumiy ko'rinish"],
   '/club/products': ['Mahsulotlar', "Kategoriyalar va ombor"],
+  '/club/sales-history': ['Savdo tarixi', "POS orqali sotilgan mahsulotlar"],
   '/club/history': ['Kirim tarixi', "Barcha o'zgarishlar jurnali"],
 };
 

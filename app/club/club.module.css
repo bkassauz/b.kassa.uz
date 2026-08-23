@@ -799,3 +799,48 @@
 }
 .posActions .btnGhost, .posActions .btnPrimary{ flex:1; text-align:center; justify-content:center; }
 
+/* ---------- Download menu (Savdo tarixi export) ---------- */
+.downloadRow{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:18px;
+  position:relative;
+}
+.downloadBtn{
+  width:46px; height:46px;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--red-deep), var(--red));
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(255,31,61,.35);
+}
+.downloadBtn svg{ width:20px; height:20px; }
+.downloadMenu{
+  position:absolute;
+  bottom:calc(100% + 10px);
+  right:0;
+  background:#15151c;
+  border:1px solid var(--line);
+  min-width:180px;
+  box-shadow:0 12px 34px rgba(0,0,0,.55);
+  z-index:20;
+}
+.downloadMenu button{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:11px 16px;
+  background:none;
+  border:none;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  color:var(--white);
+  font-size:13px;
+  cursor:pointer;
+}
+.downloadMenu button:last-child{ border-bottom:none; }
+.downloadMenu button:hover{ background:rgba(255,31,61,.12); color:#ff9c7f; }
+
