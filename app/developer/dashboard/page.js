@@ -5,9 +5,22 @@ import { supabase } from '../../../lib/supabaseClient';
 import { useDeveloperAuth } from '../../../lib/DeveloperAuthContext';
 import styles from '../developer.module.css';
 
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString('uz-UZ', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export default function DashboardPage() {
   const { profile } = useDeveloperAuth();
   const [stats, setStats] = useState({ clubs: null, clubAdmins: null });
+
+  const [message, setMessage] = useState('');
+  const [lastAnnouncement, setLastAnnouncement] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [sendMsg, setSendMsg] = useState('');
 
   useEffect(() => {
     async function loadStats() {
@@ -22,8 +35,41 @@ export default function DashboardPage() {
       });
     }
 
+    async function loadAnnouncement() {
+      const { data } = await supabase
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setLastAnnouncement(data || null);
+    }
+
     loadStats();
+    loadAnnouncement();
   }, []);
+
+  async function handleSend(e) {
+    e.preventDefault();
+    setSendMsg('');
+    if (!message.trim()) return;
+    setSending(true);
+
+    const { data, error } = await supabase
+      .from('announcements')
+      .insert({ message: message.trim() })
+      .select()
+      .single();
+
+    if (error) {
+      setSendMsg(error.message);
+    } else {
+      setLastAnnouncement(data);
+      setMessage('');
+      setSendMsg('Yuborildi.');
+    }
+    setSending(false);
+  }
 
   return (
     <>
@@ -56,13 +102,35 @@ export default function DashboardPage() {
 
       <div className={styles.panel}>
         <div className={styles.panelHead}>
-          <h2>Keyingi qadamlar</h2>
+          <h2>Barcha Seller Adminlarga xabar</h2>
         </div>
-        <p className={styles.mutedSmall}>
-          Bu yerga har bir game club bar bo'yicha qisqa vidjetlar (kunlik savdo, qoldiq
-          ogohlantirishlari, faol xodimlar) qo'shiladi — Game Clubs va Analitika bo'limlari
-          to'liq ishga tushgach.
-        </p>
+
+        <div className={styles.phoneMock}>
+          <div className={styles.phoneNotch}></div>
+          <div className={styles.phoneScreen}>
+            <div className={styles.phoneScreenLabel}>So'nggi xabar</div>
+            {lastAnnouncement ? (
+              <>
+                <div className={styles.phoneMessage}>{lastAnnouncement.message}</div>
+                <div className={styles.phoneMessageTime}>{formatDate(lastAnnouncement.created_at)}</div>
+              </>
+            ) : (
+              <div className={styles.phoneMessageEmpty}>Hali xabar yuborilmagan</div>
+            )}
+          </div>
+
+          <form className={styles.phoneForm} onSubmit={handleSend}>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Barcha bar adminlariga xabar yozing..."
+            />
+            {sendMsg && <p className={styles.mutedSmall} style={{ marginTop: 6 }}>{sendMsg}</p>}
+            <button type="submit" className={styles.btnPrimary} disabled={sending || !message.trim()}>
+              {sending ? 'Yuborilmoqda...' : 'Yuborish'}
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import * as XLSX from 'xlsx';
 import { supabase } from '../../../lib/supabaseClient';
 import { useClubAuth } from '../../../lib/ClubAuthContext';
 import styles from '../club.module.css';
@@ -20,10 +21,20 @@ function formatDate(iso) {
   });
 }
 
+function periodStart(period) {
+  const now = new Date();
+  if (period === 'kunlik') return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === 'haftalik') { const d = new Date(now); d.setDate(d.getDate() - 7); return d; }
+  if (period === 'oylik') { const d = new Date(now); d.setDate(d.getDate() - 30); return d; }
+  return null;
+}
+
 export default function HistoryPage() {
   const { club } = useClubAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     if (!club?.id) return;
@@ -41,6 +52,41 @@ export default function HistoryPage() {
 
     load();
   }, [club?.id]);
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  function handleExport(period, label) {
+    const start = periodStart(period);
+    const filtered = start ? rows.filter((r) => new Date(r.created_at) >= start) : rows;
+
+    if (filtered.length === 0) {
+      setMenuOpen(false);
+      alert("Tanlangan davrda kirim tarixi topilmadi.");
+      return;
+    }
+
+    const sheetData = filtered.map((r) => ({
+      'Mahsulot nomi': r.product_name || '—',
+      Kategoriyasi: r.category_name || '—',
+      Turi: ACTION_LABELS[r.action]?.text || r.action,
+      Soni: r.quantity != null ? `${r.quantity} ${r.unit || ''}`.trim() : '—',
+      Sana: formatDate(r.created_at),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(sheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Kirim tarixi');
+    XLSX.writeFile(wb, `kirim-tarixi-${label}-${Date.now()}.xlsx`);
+    setMenuOpen(false);
+  }
 
   return (
     <>
@@ -82,6 +128,28 @@ export default function HistoryPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        <div className={styles.downloadRow} ref={menuRef}>
+          {menuOpen && (
+            <div className={styles.downloadMenu}>
+              <button onClick={() => handleExport('kunlik', 'kunlik')}>Kunlik</button>
+              <button onClick={() => handleExport('haftalik', 'haftalik')}>Haftalik</button>
+              <button onClick={() => handleExport('oylik', 'oylik')}>Oylik</button>
+              <button onClick={() => handleExport('butun', 'butun-tarix')}>Butun tarix</button>
+            </div>
+          )}
+          <button
+            className={styles.downloadBtn}
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Excel'ga yuklab olish"
+            title="Excel'ga yuklab olish"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v12M7 10l5 5 5-5" />
+              <path d="M4 19h16" />
+            </svg>
+          </button>
         </div>
       </div>
     </>

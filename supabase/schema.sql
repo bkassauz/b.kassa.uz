@@ -220,6 +220,52 @@ create policy "sale_items: developer yoki egasi boshqaradi"
   with check (public.is_developer() or public.owns_game_club(game_club_id));
 
 
+-- 9) ANNOUNCEMENTS — Developer'dan barcha Seller Adminlarga xabar
+create table if not exists public.announcements (
+  id uuid primary key default gen_random_uuid(),
+  message text not null,
+  created_by uuid references public.profiles(id),
+  created_at timestamptz default now()
+);
+
+alter table public.announcements enable row level security;
+
+drop policy if exists "announcements: hamma o'qiy oladi" on public.announcements;
+create policy "announcements: hamma o'qiy oladi"
+  on public.announcements for select
+  using (auth.role() = 'authenticated');
+
+drop policy if exists "announcements: faqat developer yozadi" on public.announcements;
+create policy "announcements: faqat developer yozadi"
+  on public.announcements for insert
+  with check (public.is_developer());
+
+drop policy if exists "announcements: faqat developer o'chiradi" on public.announcements;
+create policy "announcements: faqat developer o'chiradi"
+  on public.announcements for delete
+  using (public.is_developer());
+
+
+-- 9) ANNOUNCEMENTS — Developer'dan barcha Seller Adminlarga xabar
+create table if not exists public.announcements (
+  id uuid primary key default gen_random_uuid(),
+  message text not null,
+  created_at timestamptz default now()
+);
+
+alter table public.announcements enable row level security;
+drop policy if exists "announcements: developer boshqaradi" on public.announcements;
+create policy "announcements: developer boshqaradi"
+  on public.announcements for all
+  using (public.is_developer())
+  with check (public.is_developer());
+
+drop policy if exists "announcements: hamma o'qiy oladi" on public.announcements;
+create policy "announcements: hamma o'qiy oladi"
+  on public.announcements for select
+  using (auth.role() = 'authenticated');
+
+
 -- ============================================================
 -- STORAGE — mahsulot rasmlari uchun
 -- ============================================================

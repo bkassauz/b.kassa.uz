@@ -518,3 +518,73 @@
   font-size:12px;
   color:var(--muted);
 }
+
+/* ---------- Phone mockup (announcement widget) ---------- */
+.phoneMock{
+  width:260px;
+  margin:0 auto;
+  background:#0d0d12;
+  border:6px solid #1c1c22;
+  border-radius:34px;
+  padding:16px 12px 18px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5), 0 0 0 1px rgba(255,31,61,.15);
+  position:relative;
+}
+.phoneNotch{
+  width:70px; height:16px;
+  background:#1c1c22;
+  border-radius:10px;
+  margin:0 auto 12px;
+}
+.phoneScreen{
+  background:linear-gradient(160deg, rgba(255,31,61,.1), rgba(0,0,0,.45));
+  border-radius:20px;
+  padding:16px 14px;
+  min-height:170px;
+  display:flex;
+  flex-direction:column;
+}
+.phoneScreenLabel{
+  font-size:9.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+.phoneMessage{
+  font-size:13px;
+  line-height:1.55;
+  color:var(--white);
+  white-space:pre-wrap;
+  flex:1;
+}
+.phoneMessageEmpty{
+  font-size:12px;
+  color:var(--muted);
+  font-style:italic;
+}
+.phoneMessageTime{
+  margin-top:10px;
+  font-size:9.5px;
+  color:var(--muted);
+  text-align:right;
+}
+.phoneForm textarea{
+  width:100%;
+  background:rgba(0,0,0,.4);
+  border:1.5px solid rgba(255,31,61,.4);
+  color:#fff;
+  padding:10px 12px;
+  font-size:13px;
+  font-family:'Inter', sans-serif;
+  resize:vertical;
+  min-height:70px;
+  margin-top:12px;
+  outline:none;
+}
+.phoneForm textarea:focus{ border-color:var(--red); }
+.phoneForm .btnPrimary{
+  width:100%;
+  margin-top:10px;
+  justify-content:center;
+}

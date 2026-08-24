@@ -96,7 +96,7 @@ export default function ClubAnalyticsPage() {
       const [salesRes, itemsRes, productsRes] = await Promise.all([
         supabase.from('sales').select('id, total, payment_method, created_at').eq('game_club_id', club.id),
         supabase.from('sale_items').select('*, sales(created_at)').eq('game_club_id', club.id),
-        supabase.from('products').select('id, name, quantity, category_id, categories(name)').eq('game_club_id', club.id),
+        supabase.from('products').select('id, name, quantity, cost_price, category_id, categories(name)').eq('game_club_id', club.id),
       ]);
       setSales(salesRes.data || []);
       setSaleItems(itemsRes.data || []);
@@ -176,6 +176,57 @@ export default function ClubAnalyticsPage() {
     return products.filter((p) => Number(p.quantity) <= 5).sort((a, b) => a.quantity - b.quantity);
   }, [products]);
 
+  const profitBreakdown = useMemo(() => {
+    const { itemsF } = filtered;
+    const costMap = {};
+    products.forEach((p) => { costMap[p.id] = Number(p.cost_price) || 0; });
+
+    const map = {};
+    itemsF.forEach((i) => {
+      if (!map[i.product_name]) {
+        map[i.product_name] = { name: i.product_name, qty: 0, cost: 0, revenue: 0 };
+      }
+      const unitCost = costMap[i.product_id] ?? 0;
+      map[i.product_name].qty += Number(i.quantity);
+      map[i.product_name].cost += unitCost * Number(i.quantity);
+      map[i.product_name].revenue += Number(i.line_total);
+    });
+
+    return Object.values(map)
+      .map((r) => ({ ...r, profit: r.revenue - r.cost }))
+      .sort((a, b) => b.profit - a.profit);
+  }, [filtered, products]);
+
+  const profitBreakdownTotals = useMemo(() => {
+    const cost = profitBreakdown.reduce((s, r) => s + r.cost, 0);
+    const revenue = profitBreakdown.reduce((s, r) => s + r.revenue, 0);
+    return { cost, revenue, profit: revenue - cost };
+  }, [profitBreakdown]);
+
+  const profitByDay = useMemo(() => {
+    const { itemsF } = filtered;
+    const costMap = {};
+    products.forEach((p) => { costMap[p.id] = Number(p.cost_price) || 0; });
+
+    const map = {};
+    itemsF.forEach((i) => {
+      const key = dayKey(i.sales?.created_at || i.created_at);
+      if (!map[key]) map[key] = { key, cost: 0, revenue: 0 };
+      map[key].cost += Number(i.quantity) * (costMap[i.product_id] ?? 0);
+      map[key].revenue += Number(i.line_total);
+    });
+
+    return Object.values(map)
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map((r) => ({ ...r, profit: r.revenue - r.cost, label: dayLabel(r.key) }));
+  }, [filtered, products]);
+
+  const profitTotals = useMemo(() => {
+    const cost = profitByDay.reduce((s, r) => s + r.cost, 0);
+    const revenue = profitByDay.reduce((s, r) => s + r.revenue, 0);
+    return { cost, revenue, profit: revenue - cost };
+  }, [profitByDay]);
+
   const maxTopRevenue = Math.max(1, ...topProducts.map((p) => p.revenue));
   const maxCatRevenue = Math.max(1, ...categoryBreakdown.map((c) => c.revenue));
 
@@ -227,6 +278,12 @@ export default function ClubAnalyticsPage() {
           <div className={styles.widgetValue}>{fmt(stats.unitsSold)}</div>
           <div className={styles.widgetHint}>dona/birlik</div>
         </div>
+        <div className={styles.widget}>
+          <div className={styles.widgetAccent}></div>
+          <div className={styles.widgetLabel}>Sof foyda</div>
+          <div className={styles.widgetValue}>{fmt(profitTotals.profit)}</div>
+          <div className={styles.widgetHint}>so'm (kelish narxi asosida)</div>
+        </div>
       </div>
 
       <div className={styles.panel}>
@@ -238,6 +295,58 @@ export default function ClubAnalyticsPage() {
         ) : (
           <LineChart data={dailySeries} />
         )}
+      </div>
+
+      <div className={styles.panel}>
+        <div className={styles.panelHead}>
+          <h2>Foyda tahlili</h2>
+        </div>
+        <div className={styles.grid} style={{ marginBottom: 18 }}>
+          <div className={styles.widget}>
+            <div className={styles.widgetAccent}></div>
+            <div className={styles.widgetLabel}>Kelish narxi (tannarx)</div>
+            <div className={styles.widgetValue}>{fmt(profitTotals.cost)}</div>
+            <div className={styles.widgetHint}>so'm</div>
+          </div>
+          <div className={styles.widget}>
+            <div className={styles.widgetAccent}></div>
+            <div className={styles.widgetLabel}>Sotuv narxi</div>
+            <div className={styles.widgetValue}>{fmt(profitTotals.revenue)}</div>
+            <div className={styles.widgetHint}>so'm</div>
+          </div>
+          <div className={styles.widget}>
+            <div className={styles.widgetAccent}></div>
+            <div className={styles.widgetLabel}>Sof foyda</div>
+            <div className={styles.widgetValue} style={{ color: profitTotals.profit >= 0 ? '#7fffa0' : '#ff6b7f' }}>
+              {fmt(profitTotals.profit)}
+            </div>
+            <div className={styles.widgetHint}>so'm</div>
+          </div>
+        </div>
+
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr><th>Sana</th><th>Kelish narxi</th><th>Sotuv narxi</th><th>Foyda</th></tr>
+            </thead>
+            <tbody>
+              {profitByDay.length === 0 && (
+                <tr><td colSpan={4} className={styles.tableEmpty}>Tanlangan davrda ma'lumot yo'q.</td></tr>
+              )}
+              {profitByDay.map((r) => (
+                <tr key={r.key}>
+                  <td>{r.label}</td>
+                  <td>{fmt(r.cost)}</td>
+                  <td>{fmt(r.revenue)}</td>
+                  <td style={{ color: r.profit >= 0 ? '#7fffa0' : '#ff6b7f' }}>{fmt(r.profit)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className={styles.placeholderNote} style={{ marginTop: 12 }}>
+          Kelish narxi mahsulotning hozirgi (joriy) tannarxi asosida taxminiy hisoblanadi.
+        </p>
       </div>
 
       <div className={styles.chartGrid}>
@@ -328,6 +437,55 @@ export default function ClubAnalyticsPage() {
             </table>
           </div>
         </div>
+      </div>
+      <div className={styles.panel}>
+        <div className={styles.panelHead}>
+          <h2>Foyda tahlili — kelish / sotuv narxi bo'yicha</h2>
+        </div>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Mahsulot</th>
+                <th>Soni</th>
+                <th>Kelish narxi (jami)</th>
+                <th>Sotuv narxi (jami)</th>
+                <th>Foyda</th>
+              </tr>
+            </thead>
+            <tbody>
+              {profitBreakdown.length === 0 && (
+                <tr><td colSpan={5} className={styles.tableEmpty}>Tanlangan davrda ma'lumot yo'q.</td></tr>
+              )}
+              {profitBreakdown.map((r) => (
+                <tr key={r.name}>
+                  <td>{r.name}</td>
+                  <td>{r.qty}</td>
+                  <td>{fmt(r.cost)}</td>
+                  <td>{fmt(r.revenue)}</td>
+                  <td className={r.profit >= 0 ? undefined : styles.lowStock} style={r.profit >= 0 ? { color: '#7fffa0', fontWeight: 600 } : undefined}>
+                    {fmt(r.profit)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            {profitBreakdown.length > 0 && (
+              <tfoot>
+                <tr>
+                  <td style={{ fontWeight: 700 }}>Jami</td>
+                  <td></td>
+                  <td style={{ fontWeight: 700 }}>{fmt(profitBreakdownTotals.cost)}</td>
+                  <td style={{ fontWeight: 700 }}>{fmt(profitBreakdownTotals.revenue)}</td>
+                  <td style={{ fontWeight: 700, color: '#7fffa0' }}>{fmt(profitBreakdownTotals.profit)}</td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+        <p className={styles.placeholderNote} style={{ marginTop: 12 }}>
+          Foyda hisobi mahsulotning hozirgi kelish narxi asosida taxminiy hisoblanadi
+          (narx keyinchalik o'zgargan bo'lsa, sotuv vaqtidagi narx alohida saqlanmaydi).
+        </p>
       </div>
     </>
   );
